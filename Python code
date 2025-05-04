@@ -134,4 +134,328 @@ plt.show()
 
 Output:
 
+D:\boxplot.png
 
+Input:
+#kde plot of transaction amount
+sns.kdeplot(x='Amount',data=df)
+plt.title('kde plot of Transaction Amount')
+plt.xlabel('Amount')
+plt.show()
+#Insights
+#The column is highly right skewed.
+#A sharp peak near zero.
+
+Output:
+"D:\Density.png"
+
+Input:
+#kde plot of amount by non fraud class
+sns.kdeplot(data=df[df['Class']==0]['Amount'],label='Non-Fraud', shade=True)
+plt.title('KDE Plot of Amount by Non-fraud Class')
+plt.xlabel('Amount')
+plt.show()
+
+Output:
+"D:\kde plot.png"
+
+Input:
+#Analyzing the time for fraudent transaction
+df['Hour'] = (df['Time'] // 3600) % 24
+fraud_df=df[df['Class']==1]
+fraud_count=fraud_df['Hour'].value_counts().sort_index()
+fraud_count
+
+Output:
+Hour
+0.0      6
+1.0     10
+2.0     57
+3.0     17
+4.0     23
+5.0     11
+6.0      9
+7.0     23
+8.0      9
+9.0     16
+10.0     8
+11.0    53
+12.0    17
+13.0    17
+14.0    23
+15.0    26
+16.0    22
+17.0    29
+18.0    33
+19.0    19
+20.0    18
+21.0    16
+22.0     9
+23.0    21
+Name: count, dtype: int64
+
+Input:
+#count of the fradulaent transcations per hour day
+plt.figure(figsize=(10, 6))
+sns.barplot(x=fraud_count.index,y=fraud_count.values)
+plt.xlabel("Hour of the day")
+plt.ylabel("Count of Fraudent Transaction")
+plt.show()
+
+Output:
+"D:\Bar graph.png"
+
+Input:
+#preprocessing
+df['Amount'] = np.log1p(df['Amount'])
+scaler = StandardScaler()
+df['ScaledAmount'] = scaler.fit_transform(df[['Amount']])
+df['Hour_Scaled'] = scaler.fit_transform(df[['Hour']])
+df.drop(columns=['Amount','Hour','Time'],inplace=True)
+df
+
+Output:
+	V1	V2	V3	V4	V5	V6	V7	V8	V9	V10	...	V22	V23	V24	V25	V26	V27	V28	Class	ScaledAmount	Hour_Scaled
+0	-1.359807	-0.072781	2.536347	1.378155	-0.338321	0.462388	0.239599	0.098698	0.363787	0.090794	...	0.277838	-0.110474	0.066928	0.128539	-0.189115	0.133558	-0.021053	0	1.124303	-2.40693
+1	1.191857	0.266151	0.166480	0.448154	0.060018	-0.082361	-0.078803	0.085102	-0.255425	-0.166974	...	-0.638672	0.101288	-0.339846	0.167170	0.125895	-0.008983	0.014724	0	-1.114639	-2.40693
+2	-1.358354	-1.340163	1.773209	0.379780	-0.503198	1.800499	0.791461	0.247676	-1.514654	0.207643	...	0.771679	0.909412	-0.689281	-0.327642	-0.139097	-0.055353	-0.059752	0	1.682368	-2.40693
+3	-0.966272	-0.185226	1.792993	-0.863291	-0.010309	1.247203	0.237609	0.377436	-1.387024	-0.054952	...	0.005274	-0.190321	-1.175575	0.647376	-0.221929	0.062723	0.061458	0	1.009339	-2.40693
+4	-1.158233	0.877737	1.548718	0.403034	-0.407193	0.095921	0.592941	-0.270533	0.817739	0.753074	...	0.798278	-0.137458	0.141267	-0.206010	0.502292	0.219422	0.215153	0	0.670241	-2.40693
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+284802	-11.881118	10.071785	-9.834783	-2.066656	-5.364473	-2.606837	-4.918215	7.305334	1.914428	4.356170	...	0.111864	1.014480	-0.509348	1.436807	0.250034	0.943651	0.823731	0	-1.558093	1.53423
+284803	-0.732789	-0.055080	2.035030	-0.738589	0.868229	1.058415	0.024330	0.294869	0.584800	-0.975926	...	0.924384	0.012463	-1.016226	-0.606624	-0.395255	0.068472	-0.053527	0	0.059034	1.53423
+284804	1.919565	-0.301254	-3.249640	-0.557828	2.630515	3.031260	-0.296827	0.708417	0.432454	-0.484782	...	0.578229	-0.037501	0.640134	0.265745	-0.087371	0.004455	-0.026561	0	0.652027	1.53423
+284805	-0.240440	0.530483	0.702510	0.689799	-0.377961	0.623708	-0.686180	0.679145	0.392087	-0.399126	...	0.800049	-0.163298	0.123205	-0.569159	0.546668	0.108821	0.104533	0	-0.455313	1.53423
+284806	-0.533413	-0.189733	0.703337	-0.506271	-0.012546	-0.649617	1.577006	-0.414650	0.486180	-0.915427	...	0.643078	0.376777	0.008797	-0.473649	-0.818267	-0.002415	0.013649	0	1.347486	1.53423
+
+
+Input:
+import xgboost as xgb
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+# Assuming df is already defined
+X = df.drop(columns=['Class'], axis=1)
+y = df['Class']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Compute scale_pos_weight
+neg, pos = np.bincount(y_train)
+scale_pos_weight = neg / pos
+print(f"Scale pos weight: {scale_pos_weight}")
+
+Output:
+Scale pos weight: 577.2868020304569
+
+Input:
+model = XGBClassifier(
+    scale_pos_weight=scale_pos_weight,
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=4,
+    random_state=42,
+    use_label_encoder=False,
+    eval_metric='logloss'
+)
+
+model.fit(X_train, y_train)
+
+Output:
+C:\Users\metig\anaconda3\Lib\site-packages\xgboost\training.py:183: UserWarning: [17:42:11] WARNING: C:\actions-runner\_work\xgboost\xgboost\src\learner.cc:738: 
+Parameters: { "use_label_encoder" } are not used.
+
+  bst.update(dtrain, iteration=i, fobj=obj)
+
+XGBClassifier
+XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='logloss',
+              feature_types=None, feature_weights=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.1, max_bin=None,
+              max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=4, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=100, n_jobs=None,
+              num_parallel_tree=None, ...)
+
+Input:
+#Evaluation
+y_pred = model.predict(X_test)
+y_proba = model.predict_proba(X_test)[:, 1]
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nROC AUC Score:", roc_auc_score(y_test, y_proba))
+auprc = average_precision_score(y_test, y_proba)
+print(f"AUPRC Score: {auprc:.4f}")
+
+Output:
+Confusion Matrix:
+ [[56726   138]
+ [   12    86]]
+
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     56864
+           1       0.38      0.88      0.53        98
+
+    accuracy                           1.00     56962
+   macro avg       0.69      0.94      0.77     56962
+weighted avg       1.00      1.00      1.00     56962
+
+
+ROC AUC Score: 0.9798714153641197
+AUPRC Score: 0.8412
+
+Input:
+#using smote method
+smote = SMOTE(random_state=42)
+X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+print("Original dataset shape:", y_train.value_counts())
+print("Resampled dataset shape:", y_train_resampled.value_counts())
+
+Output:
+Original dataset shape: Class
+0    227451
+1       394
+Name: count, dtype: int64
+Resampled dataset shape: Class
+0    227451
+1    227451
+Name: count, dtype: int64
+
+
+Input:
+model2 = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss')
+model2.fit(X_train_resampled, y_train_resampled)
+
+Output:
+C:\Users\metig\anaconda3\Lib\site-packages\xgboost\training.py:183: UserWarning: [17:42:34] WARNING: C:\actions-runner\_work\xgboost\xgboost\src\learner.cc:738: 
+Parameters: { "use_label_encoder" } are not used.
+
+  bst.update(dtrain, iteration=i, fobj=obj)
+
+XGBClassifier
+XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='logloss',
+              feature_types=None, feature_weights=None, gamma=None,
+              grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=None, max_bin=None,
+              max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=None, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              multi_strategy=None, n_estimators=None, n_jobs=None,
+              num_parallel_tree=None, ...)
+
+
+
+Input:
+y_pred2 = model2.predict(X_test)
+y_proba2 = model2.predict_proba(X_test)[:, 1] 
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred2))
+print("\nClassification Report:\n", classification_report(y_test, y_pred2))
+auprc = average_precision_score(y_test, y_proba2)
+print(f"AUPRC Score: {auprc:.4f}")
+
+Output:
+Confusion Matrix:
+ [[56844    20]
+ [   15    83]]
+
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     56864
+           1       0.81      0.85      0.83        98
+
+    accuracy                           1.00     56962
+   macro avg       0.90      0.92      0.91     56962
+weighted avg       1.00      1.00      1.00     56962
+
+AUPRC Score: 0.8771
+
+
+Input:
+#Logistic Regression
+model3=LogisticRegression(random_state=42)
+model3.fit(X_train_resampled, y_train_resampled)
+
+Output:
+LogisticRegression
+LogisticRegression(random_state=42)
+
+Input:
+y_pred3 = model2.predict(X_test)
+y_proba3 = model2.predict_proba(X_test)[:, 1] 
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred3))
+print("\nClassification Report:\n", classification_report(y_test, y_pred3))
+auprc = average_precision_score(y_test, y_proba3)
+print(f"AUPRC Score: {auprc:.4f}")
+
+Output:
+
+
+
+
+
+
+
+
+y_pred3 = model2.predict(X_test)
+y_proba3 = model2.predict_proba(X_test)[:, 1] 
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred3))
+print("\nClassification Report:\n", classification_report(y_test, y_pred3))
+auprc = average_precision_score(y_test, y_proba3)
+print(f"AUPRC Score: {auprc:.4f}")
+
+Output:
+Confusion Matrix:
+ [[56844    20]
+ [   15    83]]
+
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     56864
+           1       0.81      0.85      0.83        98
+
+    accuracy                           1.00     56962
+   macro avg       0.90      0.92      0.91     56962
+weighted avg       1.00      1.00      1.00     56962
+
+AUPRC Score: 0.8771
+
+Input:
+model4=RandomForestClassifier(random_state=42)
+model4.fit(X_train_resampled, y_train_resampled)
+y_pred4 = model2.predict(X_test)
+y_proba4 = model2.predict_proba(X_test)[:, 1] 
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred4))
+print("\nClassification Report:\n", classification_report(y_test, y_pred4))
+auprc = average_precision_score(y_test, y_proba4)
+print(f"AUPRC Score: {auprc:.4f}")
+
+Output:
+
+Confusion Matrix:
+ [[56844    20]
+ [   15    83]]
+
+Classification Report:
+               precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     56864
+           1       0.81      0.85      0.83        98
+
+    accuracy                           1.00     56962
+   macro avg       0.90      0.92      0.91     56962
+weighted avg       1.00      1.00      1.00     56962
+
+AUPRC Score: 0.8771
