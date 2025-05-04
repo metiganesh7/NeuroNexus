@@ -52,3 +52,6 @@ D.Evaluation metrics:
 3.ROC-AUC Curve
 
 
+![image](https://github.com/user-attachments/assets/fb23c261-bfdd-4608-8c42-e87517c43bf1)
+
+
