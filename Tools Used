@@ -1,1 +1,30 @@
+🛠️ Tools Used
 
+🐍 Programming Language
+
+Python – for data analysis, modeling, and scripting
+
+📦 Python Libraries
+
+Pandas – for data manipulation and analysis
+
+NumPy – for numerical computations
+
+Scikit-learn – for machine learning models and evaluation
+
+Imbalanced-learn (imblearn) – for SMOTE and handling class imbalance
+
+Matplotlib / Seaborn – for data visualization
+
+XGBoost – for high-performance gradient boosting classifier
+
+🧪 Development Environment
+
+Jupyter Notebook – for interactive code development and experimentation
+
+
+
+🗃️ Dataset Source
+
+Kaggle – Credit Card Fraud Detection dataset:
+https://www.kaggle.com/mlg-ulb/creditcardfraud
